@@ -37,8 +37,11 @@ class Attachments extends Table {
 
 // 4. Tabel Settings (Key-Value)
 class Preferences extends Table {
-  TextColumn get key => text().primaryKey()();
+  TextColumn get key => text()();
   TextColumn get value => text()();
+
+  @override
+  Set<Column> get primaryKey => {key};
 }
 
 @DriftDatabase(tables: [Courses, Tasks, Attachments, Preferences])

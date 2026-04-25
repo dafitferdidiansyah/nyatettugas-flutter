@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'core/database/app_database.dart'; // Import database kita
+import 'features/courses/add_course_sheet.dart';
 
 void main() {
-  runApp(const MyApp());
+  // 1. Inisialisasi Database saat aplikasi pertama kali jalan
+  final database = AppDatabase();
+
+  runApp(
+    // 2. Bungkus aplikasi dengan Provider agar database bisa diakses dari halaman manapun
+    RepositoryProvider.value(
+      value: database,
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -10,36 +22,30 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NyatetTugas',
-      debugShowCheckedModeBanner: false, // Menghilangkan pita merah 'DEBUG' di pojok
-      themeMode: ThemeMode.dark, // Mengunci aplikasi ke Dark Mode permanen
+      title: 'CourseTrak',
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.dark,
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF121212), // Hitam pekat agar hemat baterai (OLED)
-        primaryColor: const Color(0xFF00E676), // Warna aksen utama (Hijau Elektrik)
-        
-        // Konfigurasi warna secara global
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        primaryColor: const Color(0xFF00E676),
         colorScheme: const ColorScheme.dark(
           primary: Color(0xFF00E676),
-          secondary: Color(0xFF2979FF), // Biru untuk tombol opsional
-          surface: Color(0xFF1E1E1E), // Warna untuk Card / Kotak
+          secondary: Color(0xFF2979FF),
+          surface: Color(0xFF1E1E1E),
         ),
-        
-        // Konfigurasi AppBar (Header atas)
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF121212),
-          elevation: 0, // Datar, tanpa bayangan agar terlihat modern
+          elevation: 0,
           centerTitle: false,
           iconTheme: IconThemeData(color: Colors.white),
           titleTextStyle: TextStyle(
             color: Colors.white,
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            letterSpacing: 1.2, // Jarak antar huruf agar estetik
+            letterSpacing: 1.2,
           ),
         ),
-        
-        // Konfigurasi Tombol Mengambang (FAB)
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
           backgroundColor: Color(0xFF00E676),
           foregroundColor: Colors.white,
@@ -50,7 +56,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Layar Utama (Rangka Navigasi Bawah)
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -61,7 +66,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  // Placeholder untuk ke-3 halaman kita nanti
   final List<Widget> _pages = [
     const Center(child: Text('Today\'s Focus', style: TextStyle(fontSize: 20, color: Colors.grey))),
     const Center(child: Text('Course Archive', style: TextStyle(fontSize: 20, color: Colors.grey))),
@@ -72,19 +76,15 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Task.'), // Nama aplikasi minimalis
+        title: const Text('Task.'),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () {
-              // TODO: Arahkan ke halaman Settings
-            },
+            onPressed: () {},
           ),
         ],
       ),
-      body: _pages[_currentIndex], // Menampilkan halaman sesuai tab yang dipilih
-      
-      // Navigasi Bawah
+      body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF1E1E1E),
         selectedItemColor: const Color(0xFF00E676),
@@ -94,29 +94,23 @@ class _MainScreenState extends State<MainScreen> {
         showUnselectedLabels: true,
         onTap: (index) {
           setState(() {
-            _currentIndex = index; // Mengganti tab saat diklik
+            _currentIndex = index;
           });
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.task_alt), 
-            label: 'Focus'
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.folder_copy_outlined), 
-            label: 'Archive'
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart), 
-            label: 'Stats'
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.task_alt), label: 'Focus'),
+          BottomNavigationBarItem(icon: Icon(Icons.folder_copy_outlined), label: 'Archive'),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
         ],
       ),
-      
-      // Tombol Tambah Global
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Buka Modal/Halaman tambah tugas baru
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => const AddCourseSheet(),
+          );
         },
         child: const Icon(Icons.add, size: 28),
       ),
