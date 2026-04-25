@@ -1,8 +1,9 @@
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
-import 'dart:io';
+import 'package:drift_flutter/drift_flutter.dart';
+// import 'package:drift/native.dart';
+// import 'package:path_provider/path_provider.dart';
+// import 'package:path/path.dart' as p;
+// import 'dart:io';
 
 part 'app_database.g.dart';
 
@@ -54,8 +55,10 @@ class AppDatabase extends _$AppDatabase {
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'coursetrak.sqlite'));
-    return NativeDatabase(file);
+    // drift_flutter akan otomatis membuat database Web (pakai IndexedDB) jika di Chrome, 
+    // atau database Native (SQLite) jika di Android!
+    return driftDatabase(
+      name: 'coursetrak_db',
+    );
   });
 }
