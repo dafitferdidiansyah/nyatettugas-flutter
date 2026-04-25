@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/database/app_database.dart'; // Import database kita
 import 'features/courses/add_course_sheet.dart';
+import 'features/tasks/add_task_sheet.dart';
 
 void main() {
   // 1. Inisialisasi Database saat aplikasi pertama kali jalan
@@ -107,9 +108,33 @@ class _MainScreenState extends State<MainScreen> {
         onPressed: () {
           showModalBottomSheet(
             context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (context) => const AddCourseSheet(),
+            backgroundColor: const Color(0xFF1E1E1E),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (context) => SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.book, color: Color(0xFF00E676)),
+                    title: const Text('Add Course', style: TextStyle(color: Colors.white)),
+                    onTap: () {
+                      Navigator.pop(context); // Tutup menu pilihan dulu
+                      showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: Colors.transparent, builder: (context) => const AddCourseSheet());
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.task, color: Color(0xFF2979FF)),
+                    title: const Text('Add Task', style: TextStyle(color: Colors.white)),
+                    onTap: () {
+                      Navigator.pop(context); // Tutup menu pilihan dulu
+                      showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: Colors.transparent, builder: (context) => const AddTaskSheet());
+                    },
+                  ),
+                ],
+              ),
+            ),
           );
         },
         child: const Icon(Icons.add, size: 28),
