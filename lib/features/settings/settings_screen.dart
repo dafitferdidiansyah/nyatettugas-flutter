@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:file_picker/file_picker.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -27,6 +31,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _saveName(String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_name', value);
+  }
+
+  void _exportDatabase() async {
+    try {
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final dbPath = '${dbFolder.path}/app_database.sqlite';
+      final dbFile = File(dbPath);
+
+      if (await dbFile.exists()) {
+        // Membuka UI Android Native untuk "Save To" (Bisa pilih Documents, Drive, dll)
+        await Share.shareXFiles([XFile(dbPath)], text: 'Backup NyatetTugas Database');
+      } else {
+        _showSnackbar("Database not found!");
+      }
+    } catch (e) {
+      _showSnackbar("Export failed: $e");
+    }
+  }
+
+  void _importDatabase() async {
+    try {
+      FilePickerResult? result = await FilePicker.pickFiles();
+      if (result != null && result.files.single.path != null) {
+        final importedFile = File(result.files.single.path!);
+        
+        if (!importedFile.path.endsWith('.sqlite')) {
+           _showSnackbar("Gagal! Pilih file .sqlite yang valid.");
+           return;
+        }
+
+        final dbFolder = await getApplicationDocumentsDirectory();
+        final dbPath = '${dbFolder.path}/app_database.sqlite';
+        
+        // Timpa database SQLite lama dengan file yang dipilih user
+        await importedFile.copy(dbPath);
+        _showSnackbar("Import Success! Please RESTART the app to apply.");
+      }
+    } catch (e) {
+      _showSnackbar("Import failed: $e");
+    }
   }
 
   @override
@@ -94,14 +138,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: const Icon(Icons.download, color: Colors.white),
                   title: const Text("Export Backup", style: TextStyle(color: Colors.white)),
                   subtitle: const Text("Save tasks to device storage", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                  onTap: () => _showSnackbar("Export feature triggered"),
+                  onTap: () => _exportDatabase(),
                 ),
                 Divider(color: Colors.grey.shade800, height: 1),
                 ListTile(
                   leading: const Icon(Icons.upload, color: Colors.white),
                   title: const Text("Import Backup", style: TextStyle(color: Colors.white)),
                   subtitle: const Text("Restore tasks from a file", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                  onTap: () => _showSnackbar("Import feature triggered"),
+                  onTap: () => _importDatabase(),
                 ),
               ],
             ),
@@ -118,6 +162,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  
   void _showSnackbar(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.grey.shade800));
   }

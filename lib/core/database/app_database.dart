@@ -27,6 +27,8 @@ class Tasks extends Table {
   TextColumn get description => text().nullable()();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get deadline => dateTime()();
+  TextColumn get attachmentPath => text().nullable()();
+  TextColumn get attachmentName => text().nullable()(); 
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
 }
 

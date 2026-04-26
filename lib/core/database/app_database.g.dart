@@ -517,6 +517,28 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _attachmentPathMeta = const VerificationMeta(
+    'attachmentPath',
+  );
+  @override
+  late final GeneratedColumn<String> attachmentPath = GeneratedColumn<String>(
+    'attachment_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _attachmentNameMeta = const VerificationMeta(
+    'attachmentName',
+  );
+  @override
+  late final GeneratedColumn<String> attachmentName = GeneratedColumn<String>(
+    'attachment_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isCompletedMeta = const VerificationMeta(
     'isCompleted',
   );
@@ -540,6 +562,8 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     description,
     notes,
     deadline,
+    attachmentPath,
+    attachmentName,
     isCompleted,
   ];
   @override
@@ -596,6 +620,24 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     } else if (isInserting) {
       context.missing(_deadlineMeta);
     }
+    if (data.containsKey('attachment_path')) {
+      context.handle(
+        _attachmentPathMeta,
+        attachmentPath.isAcceptableOrUnknown(
+          data['attachment_path']!,
+          _attachmentPathMeta,
+        ),
+      );
+    }
+    if (data.containsKey('attachment_name')) {
+      context.handle(
+        _attachmentNameMeta,
+        attachmentName.isAcceptableOrUnknown(
+          data['attachment_name']!,
+          _attachmentNameMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_completed')) {
       context.handle(
         _isCompletedMeta,
@@ -638,6 +680,14 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}deadline'],
       )!,
+      attachmentPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}attachment_path'],
+      ),
+      attachmentName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}attachment_name'],
+      ),
       isCompleted: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_completed'],
@@ -658,6 +708,8 @@ class Task extends DataClass implements Insertable<Task> {
   final String? description;
   final String? notes;
   final DateTime deadline;
+  final String? attachmentPath;
+  final String? attachmentName;
   final bool isCompleted;
   const Task({
     required this.id,
@@ -666,6 +718,8 @@ class Task extends DataClass implements Insertable<Task> {
     this.description,
     this.notes,
     required this.deadline,
+    this.attachmentPath,
+    this.attachmentName,
     required this.isCompleted,
   });
   @override
@@ -681,6 +735,12 @@ class Task extends DataClass implements Insertable<Task> {
       map['notes'] = Variable<String>(notes);
     }
     map['deadline'] = Variable<DateTime>(deadline);
+    if (!nullToAbsent || attachmentPath != null) {
+      map['attachment_path'] = Variable<String>(attachmentPath);
+    }
+    if (!nullToAbsent || attachmentName != null) {
+      map['attachment_name'] = Variable<String>(attachmentName);
+    }
     map['is_completed'] = Variable<bool>(isCompleted);
     return map;
   }
@@ -697,6 +757,12 @@ class Task extends DataClass implements Insertable<Task> {
           ? const Value.absent()
           : Value(notes),
       deadline: Value(deadline),
+      attachmentPath: attachmentPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(attachmentPath),
+      attachmentName: attachmentName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(attachmentName),
       isCompleted: Value(isCompleted),
     );
   }
@@ -713,6 +779,8 @@ class Task extends DataClass implements Insertable<Task> {
       description: serializer.fromJson<String?>(json['description']),
       notes: serializer.fromJson<String?>(json['notes']),
       deadline: serializer.fromJson<DateTime>(json['deadline']),
+      attachmentPath: serializer.fromJson<String?>(json['attachmentPath']),
+      attachmentName: serializer.fromJson<String?>(json['attachmentName']),
       isCompleted: serializer.fromJson<bool>(json['isCompleted']),
     );
   }
@@ -726,6 +794,8 @@ class Task extends DataClass implements Insertable<Task> {
       'description': serializer.toJson<String?>(description),
       'notes': serializer.toJson<String?>(notes),
       'deadline': serializer.toJson<DateTime>(deadline),
+      'attachmentPath': serializer.toJson<String?>(attachmentPath),
+      'attachmentName': serializer.toJson<String?>(attachmentName),
       'isCompleted': serializer.toJson<bool>(isCompleted),
     };
   }
@@ -737,6 +807,8 @@ class Task extends DataClass implements Insertable<Task> {
     Value<String?> description = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     DateTime? deadline,
+    Value<String?> attachmentPath = const Value.absent(),
+    Value<String?> attachmentName = const Value.absent(),
     bool? isCompleted,
   }) => Task(
     id: id ?? this.id,
@@ -745,6 +817,12 @@ class Task extends DataClass implements Insertable<Task> {
     description: description.present ? description.value : this.description,
     notes: notes.present ? notes.value : this.notes,
     deadline: deadline ?? this.deadline,
+    attachmentPath: attachmentPath.present
+        ? attachmentPath.value
+        : this.attachmentPath,
+    attachmentName: attachmentName.present
+        ? attachmentName.value
+        : this.attachmentName,
     isCompleted: isCompleted ?? this.isCompleted,
   );
   Task copyWithCompanion(TasksCompanion data) {
@@ -757,6 +835,12 @@ class Task extends DataClass implements Insertable<Task> {
           : this.description,
       notes: data.notes.present ? data.notes.value : this.notes,
       deadline: data.deadline.present ? data.deadline.value : this.deadline,
+      attachmentPath: data.attachmentPath.present
+          ? data.attachmentPath.value
+          : this.attachmentPath,
+      attachmentName: data.attachmentName.present
+          ? data.attachmentName.value
+          : this.attachmentName,
       isCompleted: data.isCompleted.present
           ? data.isCompleted.value
           : this.isCompleted,
@@ -772,6 +856,8 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('description: $description, ')
           ..write('notes: $notes, ')
           ..write('deadline: $deadline, ')
+          ..write('attachmentPath: $attachmentPath, ')
+          ..write('attachmentName: $attachmentName, ')
           ..write('isCompleted: $isCompleted')
           ..write(')'))
         .toString();
@@ -785,6 +871,8 @@ class Task extends DataClass implements Insertable<Task> {
     description,
     notes,
     deadline,
+    attachmentPath,
+    attachmentName,
     isCompleted,
   );
   @override
@@ -797,6 +885,8 @@ class Task extends DataClass implements Insertable<Task> {
           other.description == this.description &&
           other.notes == this.notes &&
           other.deadline == this.deadline &&
+          other.attachmentPath == this.attachmentPath &&
+          other.attachmentName == this.attachmentName &&
           other.isCompleted == this.isCompleted);
 }
 
@@ -807,6 +897,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<String?> description;
   final Value<String?> notes;
   final Value<DateTime> deadline;
+  final Value<String?> attachmentPath;
+  final Value<String?> attachmentName;
   final Value<bool> isCompleted;
   const TasksCompanion({
     this.id = const Value.absent(),
@@ -815,6 +907,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.description = const Value.absent(),
     this.notes = const Value.absent(),
     this.deadline = const Value.absent(),
+    this.attachmentPath = const Value.absent(),
+    this.attachmentName = const Value.absent(),
     this.isCompleted = const Value.absent(),
   });
   TasksCompanion.insert({
@@ -824,6 +918,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.description = const Value.absent(),
     this.notes = const Value.absent(),
     required DateTime deadline,
+    this.attachmentPath = const Value.absent(),
+    this.attachmentName = const Value.absent(),
     this.isCompleted = const Value.absent(),
   }) : courseId = Value(courseId),
        title = Value(title),
@@ -835,6 +931,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<String>? description,
     Expression<String>? notes,
     Expression<DateTime>? deadline,
+    Expression<String>? attachmentPath,
+    Expression<String>? attachmentName,
     Expression<bool>? isCompleted,
   }) {
     return RawValuesInsertable({
@@ -844,6 +942,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (description != null) 'description': description,
       if (notes != null) 'notes': notes,
       if (deadline != null) 'deadline': deadline,
+      if (attachmentPath != null) 'attachment_path': attachmentPath,
+      if (attachmentName != null) 'attachment_name': attachmentName,
       if (isCompleted != null) 'is_completed': isCompleted,
     });
   }
@@ -855,6 +955,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<String?>? description,
     Value<String?>? notes,
     Value<DateTime>? deadline,
+    Value<String?>? attachmentPath,
+    Value<String?>? attachmentName,
     Value<bool>? isCompleted,
   }) {
     return TasksCompanion(
@@ -864,6 +966,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
       description: description ?? this.description,
       notes: notes ?? this.notes,
       deadline: deadline ?? this.deadline,
+      attachmentPath: attachmentPath ?? this.attachmentPath,
+      attachmentName: attachmentName ?? this.attachmentName,
       isCompleted: isCompleted ?? this.isCompleted,
     );
   }
@@ -889,6 +993,12 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (deadline.present) {
       map['deadline'] = Variable<DateTime>(deadline.value);
     }
+    if (attachmentPath.present) {
+      map['attachment_path'] = Variable<String>(attachmentPath.value);
+    }
+    if (attachmentName.present) {
+      map['attachment_name'] = Variable<String>(attachmentName.value);
+    }
     if (isCompleted.present) {
       map['is_completed'] = Variable<bool>(isCompleted.value);
     }
@@ -904,6 +1014,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('description: $description, ')
           ..write('notes: $notes, ')
           ..write('deadline: $deadline, ')
+          ..write('attachmentPath: $attachmentPath, ')
+          ..write('attachmentName: $attachmentName, ')
           ..write('isCompleted: $isCompleted')
           ..write(')'))
         .toString();
@@ -1775,6 +1887,8 @@ typedef $$TasksTableCreateCompanionBuilder =
       Value<String?> description,
       Value<String?> notes,
       required DateTime deadline,
+      Value<String?> attachmentPath,
+      Value<String?> attachmentName,
       Value<bool> isCompleted,
     });
 typedef $$TasksTableUpdateCompanionBuilder =
@@ -1785,6 +1899,8 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<String?> description,
       Value<String?> notes,
       Value<DateTime> deadline,
+      Value<String?> attachmentPath,
+      Value<String?> attachmentName,
       Value<bool> isCompleted,
     });
 
@@ -1858,6 +1974,16 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<DateTime> get deadline => $composableBuilder(
     column: $table.deadline,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get attachmentPath => $composableBuilder(
+    column: $table.attachmentPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get attachmentName => $composableBuilder(
+    column: $table.attachmentName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1949,6 +2075,16 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get attachmentPath => $composableBuilder(
+    column: $table.attachmentPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get attachmentName => $composableBuilder(
+    column: $table.attachmentName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isCompleted => $composableBuilder(
     column: $table.isCompleted,
     builder: (column) => ColumnOrderings(column),
@@ -2003,6 +2139,16 @@ class $$TasksTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deadline =>
       $composableBuilder(column: $table.deadline, builder: (column) => column);
+
+  GeneratedColumn<String> get attachmentPath => $composableBuilder(
+    column: $table.attachmentPath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get attachmentName => $composableBuilder(
+    column: $table.attachmentName,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<bool> get isCompleted => $composableBuilder(
     column: $table.isCompleted,
@@ -2092,6 +2238,8 @@ class $$TasksTableTableManager
                 Value<String?> description = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> deadline = const Value.absent(),
+                Value<String?> attachmentPath = const Value.absent(),
+                Value<String?> attachmentName = const Value.absent(),
                 Value<bool> isCompleted = const Value.absent(),
               }) => TasksCompanion(
                 id: id,
@@ -2100,6 +2248,8 @@ class $$TasksTableTableManager
                 description: description,
                 notes: notes,
                 deadline: deadline,
+                attachmentPath: attachmentPath,
+                attachmentName: attachmentName,
                 isCompleted: isCompleted,
               ),
           createCompanionCallback:
@@ -2110,6 +2260,8 @@ class $$TasksTableTableManager
                 Value<String?> description = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 required DateTime deadline,
+                Value<String?> attachmentPath = const Value.absent(),
+                Value<String?> attachmentName = const Value.absent(),
                 Value<bool> isCompleted = const Value.absent(),
               }) => TasksCompanion.insert(
                 id: id,
@@ -2118,6 +2270,8 @@ class $$TasksTableTableManager
                 description: description,
                 notes: notes,
                 deadline: deadline,
+                attachmentPath: attachmentPath,
+                attachmentName: attachmentName,
                 isCompleted: isCompleted,
               ),
           withReferenceMapper: (p0) => p0

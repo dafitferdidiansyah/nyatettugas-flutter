@@ -23,7 +23,7 @@ class _AddCourseSheetState extends State<AddCourseSheet> {
     if (widget.courseToEdit != null) {
       _nameController.text = widget.courseToEdit!.name;
       _dayController.text = widget.courseToEdit!.day;
-      _timeController.text = widget.courseToEdit!.time ?? '';
+      _timeController.text = widget.courseToEdit!.time;
       _roomController.text = widget.courseToEdit!.room ?? '';
     }
   }
