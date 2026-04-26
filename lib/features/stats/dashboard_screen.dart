@@ -1,10 +1,31 @@
-// Lokasi: lib/features/stats/dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // <-- Import ini
 import '../../core/database/app_database.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  String _userName = "Student";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadName();
+  }
+
+  void _loadName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userName = prefs.getString('user_name') ?? "Student";
+      if (_userName.isEmpty) _userName = "Student";
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +46,12 @@ class DashboardScreen extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(24),
             children: [
+              // GREETING NAME DI SINI
+              Text("Hello, $_userName!", style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text("Here's your productivity overview.", style: TextStyle(color: Colors.grey)),
+              const SizedBox(height: 24),
+              
               _buildProgressCard("Overall Productivity", progress, "${(progress * 100).toInt()}%"),
               const SizedBox(height: 32),
               const Text("STATISTICS", style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.5)),
@@ -56,12 +83,7 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: value,
-              minHeight: 12,
-              backgroundColor: Colors.white10,
-              color: const Color(0xFF00E676),
-            ),
+            child: LinearProgressIndicator(value: value, minHeight: 12, backgroundColor: Colors.white10, color: const Color(0xFF00E676)),
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:nyatettugas/core/services/notification_service.dart';
 import '../../core/database/app_database.dart';
 import 'add_course_sheet.dart';
 
@@ -42,7 +43,11 @@ class CourseArchiveScreen extends StatelessWidget {
                       label: 'Edit',
                     ),
                     SlidableAction(
-                      onPressed: (context) => db.deleteCourse(course),
+                      onPressed: (context) async {
+                        // Jika matkul punya jadwal (misal ID unik pakai ID matkul)
+                        await NotificationService().cancelNotification(course.id + 10000); // ID Offset agar tidak bentrok dengan task
+                        await db.deleteCourse(course);
+                      },
                       backgroundColor: const Color(0xFFFE4A49),
                       icon: Icons.delete,
                       label: 'Delete',
@@ -56,7 +61,7 @@ class CourseArchiveScreen extends StatelessWidget {
                     contentPadding: const EdgeInsets.all(16),
                     leading: Container(width: 4, height: 40, decoration: BoxDecoration(color: Color(course.colorValue), borderRadius: BorderRadius.circular(2))),
                     title: Text(course.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    subtitle: Text("${course.day} • ${course.time} • ${course.room ?? 'No Room'}", style: const TextStyle(color: Colors.grey)),
+                    subtitle: Text("${course.day} • ${course.time} • ${course.room ?? 'No Room'} • ${course.lecturer ?? 'TBA'}", style: const TextStyle(color: Colors.grey)),
                   ),
                 ),
               );

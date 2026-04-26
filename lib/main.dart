@@ -5,8 +5,12 @@ import 'features/settings/settings_screen.dart';
 import 'features/courses/course_archive_screen.dart';
 import 'features/stats/dashboard_screen.dart';
 import 'features/tasks/focus_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'core/services/notification_service.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().init(); // <--- TAMBAHKAN INI
   runApp(
     RepositoryProvider(
       create: (context) => AppDatabase(),
@@ -36,11 +40,25 @@ class MyApp extends StatelessWidget {
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
+  
+
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    _requestPermissions();
+  }
+
+  void _requestPermissions() async {
+    // Minta izin kirim notif (Wajib di Android 13+)
+    await Permission.notification.request();
+  }
+
   int _currentIndex = 0;
 
   final List<Widget> _pages = [

@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' hide Column;
 import '../../core/database/app_database.dart';
 import 'task_item_card.dart';
 import 'add_task_sheet.dart';
+import 'package:nyatettugas/core/services/notification_service.dart';
 
 class FocusScreen extends StatelessWidget {
   const FocusScreen({super.key});
@@ -71,7 +72,10 @@ class FocusScreen extends StatelessWidget {
               label: 'Edit',
             ),
             SlidableAction(
-              onPressed: (context) => db.deleteTask(task),
+              onPressed: (context) async { // Batalkan notifikasi dulu baru hapus datanya
+                await NotificationService().cancelNotification(task.id);
+                await db.deleteTask(task);
+                  },
               backgroundColor: const Color(0xFFFE4A49),
               icon: Icons.delete,
               label: 'Delete',

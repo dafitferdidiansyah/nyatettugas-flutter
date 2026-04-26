@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:nyatettugas/core/services/notification_service.dart';
+import 'package:nyatettugas/core/utils/notification_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/database/app_database.dart';
 
 class AddTaskSheet extends StatefulWidget {
@@ -37,21 +40,39 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
     }
 
     final db = context.read<AppDatabase>();
+    int taskId;
+
     if (widget.taskToEdit == null) {
-      await db.into(db.tasks).insert(TasksCompanion.insert(
+        taskId = await db.into(db.tasks).insert(TasksCompanion.insert(
         courseId: _selectedCourseId!,
         title: _titleController.text,
         description: Value(_descController.text),
         deadline: _selectedDate,
         isCompleted: const Value(false),
       ));
+      
     } else {
+      taskId = widget.taskToEdit!.id;
+      // Batalkan dulu notif lama sebelum update (Best Practice)
+      await NotificationService().cancelNotification(taskId);
       await db.update(db.tasks).replace(widget.taskToEdit!.copyWith(
         courseId: _selectedCourseId!,
         title: _titleController.text,
         description: Value(_descController.text),
         deadline: _selectedDate,
       ));
+    }
+    final prefs = await SharedPreferences.getInstance();
+    int minutesBefore = prefs.getInt('task_reminder_val') ?? 60;
+    DateTime scheduledTime = _selectedDate.subtract(Duration(minutes: minutesBefore));
+    if (scheduledTime.isAfter(DateTime.now())) {
+      String randomBody = NotificationHelper.getRandomTaskWarning(_titleController.text);
+      await NotificationService().scheduleNotification(
+        id: taskId,
+        title: "Deadline Reminder!",
+        body: randomBody,
+        scheduledDate: scheduledTime,
+      );
     }
     if (mounted) Navigator.pop(context);
   }
