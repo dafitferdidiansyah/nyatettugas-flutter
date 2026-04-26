@@ -6,6 +6,7 @@ import 'features/tasks/add_task_sheet.dart';
 import 'features/tasks/focus_screen.dart';
 import 'features/courses/course_archive_screen.dart';
 import 'features/stats/dashboard_screen.dart';
+import 'features/settings/settings_screen.dart';
 
 void main() {
   // 1. Inisialisasi Database saat aplikasi pertama kali jalan
@@ -74,6 +75,7 @@ class _MainScreenState extends State<MainScreen> {
     const FocusScreen(),
     const CourseArchiveScreen(),   // Tab 1 (Matkul)
     const DashboardScreen(),       // Tab 2 (Stats)
+    const SettingsScreen(),        // Tab 3 (Settings)
     const Center(child: Text('Today\'s Focus', style: TextStyle(fontSize: 20, color: Colors.grey))),
     const Center(child: Text('Course Archive', style: TextStyle(fontSize: 20, color: Colors.grey))),
     const Center(child: Text('Stats & Progress', style: TextStyle(fontSize: 20, color: Colors.grey))),
@@ -108,6 +110,7 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.task_alt), label: 'Focus'),
           BottomNavigationBarItem(icon: Icon(Icons.folder_copy_outlined), label: 'Archive'),
           BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Settings'),
         ],
       ),
       floatingActionButton: FloatingActionButton(

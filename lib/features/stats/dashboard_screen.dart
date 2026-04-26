@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/database/app_database.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -17,55 +18,83 @@ class DashboardScreen extends StatelessWidget {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
           final tasks = snapshot.data!;
-          final completed = tasks.where((t) => t.isCompleted).length;
-          final total = tasks.length;
-          final progress = total == 0 ? 0.0 : completed / total;
+          final now = DateTime.now();
+          final today = DateTime(now.year, now.month, now.day);
+
+          int activeCount = 0;
+          int completedCount = 0;
+          int overdueCount = 0;
+          int todayCount = 0;
+
+          for (var task in tasks) {
+            if (task.isCompleted) {
+              completedCount++;
+            } else {
+              activeCount++;
+              final taskDate = DateTime(task.deadline.year, task.deadline.month, task.deadline.day);
+              if (taskDate.isBefore(today)) {
+                overdueCount++;
+              } else if (taskDate.isAtSameMomentAs(today)) {
+                todayCount++;
+              }
+            }
+          }
 
           return ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              const Text("Your Progress", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-              const SizedBox(height: 20),
-              
-              // KARTU STATISTIK UTAMA
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [Color(0xFF00E676), Color(0xFF00C853)]),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text("Total Tugas Selesai", style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
-                        Text("$completed/$total", style: const TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    const SizedBox(height: 15),
-                    LinearProgressIndicator(
-                      value: progress,
-                      backgroundColor: Colors.black12,
-                      color: Colors.black,
-                      minHeight: 10,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    const SizedBox(height: 10),
-                    Text("${(progress * 100).toInt()}% Selesai", style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                  ],
-                ),
+              // HEADER & GREETING
+              FutureBuilder<String>(
+                future: SharedPreferences.getInstance().then((p) => p.getString('user_name') ?? 'Buddy'),
+                builder: (context, nameSnapshot) {
+                  final userName = nameSnapshot.data ?? 'Buddy';
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Hello, $userName! 👋", style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const SizedBox(height: 8),
+                      Text("You have $activeCount active tasks waiting.", style: const TextStyle(color: Colors.grey, fontSize: 16)),
+                    ],
+                  );
+                },
               ),
-              
-              const SizedBox(height: 30),
-              const Text("Tips Hari Ini", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              const ListTile(
-                leading: Icon(Icons.lightbulb, color: Colors.yellow),
-                title: Text("Cicil tugas yang deadline-nya paling dekat dulu, Dafit!", style: TextStyle(color: Colors.grey, fontSize: 14)),
+              const SizedBox(height: 40),
+
+              // MINIMALIST STATS GRID
+              Row(
+                children: [
+                  _buildStatBox("Overdue", overdueCount, Colors.redAccent, Icons.warning_amber_rounded),
+                  const SizedBox(width: 16),
+                  _buildStatBox("Today", todayCount, Colors.orangeAccent, Icons.today),
+                  const SizedBox(width: 16),
+                  _buildStatBox("Done", completedCount, const Color(0xFF00E676), Icons.check_circle_outline),
+                ],
               ),
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildStatBox(String title, int count, Color color, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E1E),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 12),
+            Text(count.toString(), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+            const SizedBox(height: 4),
+            Text(title, style: TextStyle(color: Colors.grey.shade400, fontSize: 13, fontWeight: FontWeight.w500)),
+          ],
+        ),
       ),
     );
   }
