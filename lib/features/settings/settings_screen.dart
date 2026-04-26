@@ -1,3 +1,4 @@
+// Lokasi: lib/features/settings/settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,7 +11,8 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _nameController = TextEditingController();
-  bool _notificationsEnabled = true;
+  bool _taskNotifEnabled = true;
+  bool _courseNotifEnabled = true;
 
   @override
   void initState() {
@@ -22,7 +24,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _nameController.text = prefs.getString('user_name') ?? '';
-      _notificationsEnabled = prefs.getBool('notif_enabled') ?? true;
+      _taskNotifEnabled = prefs.getBool('task_notif') ?? true;
+      _courseNotifEnabled = prefs.getBool('course_notif') ?? true;
     });
   }
 
@@ -31,20 +34,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setString('user_name', value);
   }
 
-  _toggleNotif(bool value) async {
+  _toggleSetting(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notif_enabled', value);
-    setState(() => _notificationsEnabled = value);
+    await prefs.setBool(key, value);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -64,21 +67,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           
-          const SizedBox(height: 24),
-          _buildSectionHeader("Reminders"),
+          const SizedBox(height: 30),
+          _buildSectionHeader("Reminders & Alerts"),
           Container(
             decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
-            child: SwitchListTile(
-              title: const Text("Allow Notifications", style: TextStyle(color: Colors.white)),
-              subtitle: const Text("Daily briefings and deadlines", style: TextStyle(color: Colors.grey, fontSize: 12)),
-              activeColor: const Color(0xFF00E676),
-              value: _notificationsEnabled,
-              onChanged: _toggleNotif,
-              secondary: const Icon(Icons.notifications_active_outlined, color: Color(0xFF00E676)),
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: const Text("Task Deadlines", style: TextStyle(color: Colors.white)),
+                  subtitle: const Text("Alerts before tasks are due", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  activeColor: const Color(0xFF00E676),
+                  value: _taskNotifEnabled,
+                  onChanged: (val) {
+                    setState(() => _taskNotifEnabled = val);
+                    _toggleSetting('task_notif', val);
+                  },
+                ),
+                Divider(color: Colors.grey.shade800, height: 1),
+                SwitchListTile(
+                  title: const Text("Course Schedules", style: TextStyle(color: Colors.white)),
+                  subtitle: const Text("Alerts before classes start", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  activeColor: const Color(0xFF00E676),
+                  value: _courseNotifEnabled,
+                  onChanged: (val) {
+                    setState(() => _courseNotifEnabled = val);
+                    _toggleSetting('course_notif', val);
+                  },
+                ),
+              ],
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 30),
           _buildSectionHeader("Data Management"),
           Container(
             decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
@@ -88,50 +108,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: const Icon(Icons.download, color: Colors.white),
                   title: const Text("Export Backup", style: TextStyle(color: Colors.white)),
                   subtitle: const Text("Save tasks to device storage", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                  onTap: () {
-                    // TODO: Logic Export SQLite
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export feature coming soon!')));
-                  },
+                  onTap: () => _showSnackbar("Export feature triggered"),
                 ),
                 Divider(color: Colors.grey.shade800, height: 1),
                 ListTile(
                   leading: const Icon(Icons.upload, color: Colors.white),
                   title: const Text("Import Backup", style: TextStyle(color: Colors.white)),
                   subtitle: const Text("Restore tasks from a file", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                  onTap: () {
-                    // TODO: Logic Import SQLite
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Import feature coming soon!')));
-                  },
+                  onTap: () => _showSnackbar("Import feature triggered"),
                 ),
               ],
             ),
           ),
-
-          const SizedBox(height: 32),
-          _buildSectionHeader("Danger Zone"),
-          Container(
-            decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.cleaning_services, color: Colors.redAccent),
-                  title: const Text("Clear Completed Tasks", style: TextStyle(color: Colors.redAccent)),
-                  onTap: () {
-                    // TODO: Query delete isCompleted == true
-                  },
-                ),
-                Divider(color: Colors.grey.shade800, height: 1),
-                ListTile(
-                  leading: const Icon(Icons.delete_forever, color: Colors.redAccent),
-                  title: const Text("Erase All Data", style: TextStyle(color: Colors.redAccent)),
-                  onTap: () {
-                    // TODO: Drop tables
-                  },
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
         ],
       ),
     );
@@ -140,7 +128,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12, left: 4),
-      child: Text(title, style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1.2)),
+      child: Text(title.toUpperCase(), style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.2)),
     );
+  }
+
+  void _showSnackbar(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.grey.shade800));
   }
 }

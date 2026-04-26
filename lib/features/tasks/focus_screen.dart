@@ -1,9 +1,10 @@
+// Lokasi: lib/features/tasks/focus_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/database/app_database.dart';
 import 'package:drift/drift.dart' hide Column;
+import '../../core/database/app_database.dart';
 import 'task_item_card.dart';
-import 'task_detail_screen.dart';
+import 'add_task_sheet.dart';
 
 class FocusScreen extends StatelessWidget {
   const FocusScreen({super.key});
@@ -14,48 +15,72 @@ class FocusScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFF00E676),
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => const AddTaskSheet(),
+          );
+        },
+        child: const Icon(Icons.edit_note, color: Colors.black, size: 28),
+      ),
       body: StreamBuilder<List<TypedResult>>(
-        // Algoritma: Ambil tugas, gabungkan (join) dengan data matkul
-        stream: (db.select(db.tasks)..where((t) => t.isCompleted.equals(false)))
-            .join([
-              innerJoin(db.courses, db.courses.id.equalsExp(db.tasks.courseId)),
-            ]).watch(),
+        stream: (db.select(db.tasks).join([
+          innerJoin(db.courses, db.courses.id.equalsExp(db.tasks.courseId)),
+        ])..orderBy([OrderingTerm.asc(db.tasks.deadline)])).watch(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-          
+
           final results = snapshot.data!;
-          if (results.isEmpty) {
-            return const Center(child: Text("No tasks for today. Chill! ☕", style: TextStyle(color: Colors.grey)));
-          }
+          
+          // Memisahkan Aktif dan Selesai
+          final active = results.where((r) => !r.readTable(db.tasks).isCompleted).toList();
+          final completed = results.where((r) => r.readTable(db.tasks).isCompleted).toList();
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(20),
-            itemCount: results.length,
-            itemBuilder: (context, index) {
-              final row = results[index];
-              final task = row.readTable(db.tasks);
-              final course = row.readTable(db.courses);
+          return ListView(
+            padding: const EdgeInsets.only(top: 10, left: 20, right: 20, bottom: 100),
+            children: [
+              if (active.isEmpty && completed.isEmpty)
+                const Center(child: Padding(padding: EdgeInsets.only(top: 50), child: Text("No tasks yet. Stay focused!", style: TextStyle(color: Colors.grey)))),              
+              // Active Tasks
+              ...active.map((res) => _buildDismissibleTask(context, db, res, false)),
 
-              return TaskItemCard(
-                task: task,
-                course: course,
-                onCheckboxChanged: (val) {
-                  // Update status selesai di database
-                  db.update(db.tasks).replace(task.copyWith(isCompleted: val ?? false));
-                },
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TaskDetailScreen(task: task, course: course),
-                    ),
-                  );
-                },
-              );
-            },
+              if (completed.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Text("COMPLETED", style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.5)),
+                ),
+                // Completed Tasks (Dimmed)
+                ...completed.map((res) => Opacity(
+                  opacity: 0.5,
+                  child: _buildDismissibleTask(context, db, res, true),
+                )),
+              ],
+            ],
           );
         },
       ),
+    );
+  }
+
+  Widget _buildDismissibleTask(BuildContext context, AppDatabase db, TypedResult res, bool isDone) {
+    final task = res.readTable(db.tasks);
+    final course = res.readTable(db.courses);
+
+    return Dismissible(
+      key: Key(task.id.toString()),
+      direction: DismissDirection.endToStart,
+      onDismissed: (direction) => db.deleteTask(task),
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.circular(16)),
+        child: const Icon(Icons.delete_outline, color: Colors.white),
+      ),
+      child: TaskItemCard(task: task, course: course, isStrikethrough: isDone),
     );
   }
 }

@@ -1,6 +1,6 @@
+// Lokasi: lib/features/stats/dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/database/app_database.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -18,58 +18,20 @@ class DashboardScreen extends StatelessWidget {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
           final tasks = snapshot.data!;
-          final now = DateTime.now();
-          final today = DateTime(now.year, now.month, now.day);
-
-          int activeCount = 0;
-          int completedCount = 0;
-          int overdueCount = 0;
-          int todayCount = 0;
-
-          for (var task in tasks) {
-            if (task.isCompleted) {
-              completedCount++;
-            } else {
-              activeCount++;
-              final taskDate = DateTime(task.deadline.year, task.deadline.month, task.deadline.day);
-              if (taskDate.isBefore(today)) {
-                overdueCount++;
-              } else if (taskDate.isAtSameMomentAs(today)) {
-                todayCount++;
-              }
-            }
-          }
+          final completed = tasks.where((t) => t.isCompleted).length;
+          final total = tasks.length;
+          final progress = total == 0 ? 0.0 : completed / total;
 
           return ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              // HEADER & GREETING
-              FutureBuilder<String>(
-                future: SharedPreferences.getInstance().then((p) => p.getString('user_name') ?? 'Buddy'),
-                builder: (context, nameSnapshot) {
-                  final userName = nameSnapshot.data ?? 'Buddy';
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Hello, $userName! 👋", style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
-                      const SizedBox(height: 8),
-                      Text("You have $activeCount active tasks waiting.", style: const TextStyle(color: Colors.grey, fontSize: 16)),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 40),
-
-              // MINIMALIST STATS GRID
-              Row(
-                children: [
-                  _buildStatBox("Overdue", overdueCount, Colors.redAccent, Icons.warning_amber_rounded),
-                  const SizedBox(width: 16),
-                  _buildStatBox("Today", todayCount, Colors.orangeAccent, Icons.today),
-                  const SizedBox(width: 16),
-                  _buildStatBox("Done", completedCount, const Color(0xFF00E676), Icons.check_circle_outline),
-                ],
-              ),
+              _buildProgressCard("Overall Productivity", progress, "${(progress * 100).toInt()}%"),
+              const SizedBox(height: 32),
+              const Text("STATISTICS", style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.5)),
+              const SizedBox(height: 16),
+              _buildSimpleStatRow("Active Tasks", (total - completed).toString(), Icons.pending_actions),
+              _buildSimpleStatRow("Completed", completed.toString(), Icons.check_circle_outline),
+              _buildSimpleStatRow("Total Tasks", total.toString(), Icons.assignment_outlined),
             ],
           );
         },
@@ -77,24 +39,46 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatBox(String title, int count, Color color, IconData icon) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.3), width: 1.5),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 12),
-            Text(count.toString(), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
-            const SizedBox(height: 4),
-            Text(title, style: TextStyle(color: Colors.grey.shade400, fontSize: 13, fontWeight: FontWeight.w500)),
-          ],
-        ),
+  Widget _buildProgressCard(String title, double value, String percentage) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(20)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              Text(percentage, style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: value,
+              minHeight: 12,
+              backgroundColor: Colors.white10,
+              color: const Color(0xFF00E676),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimpleStatRow(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.grey, size: 20),
+          const SizedBox(width: 12),
+          Text(label, style: const TextStyle(color: Colors.grey)),
+          const Spacer(),
+          Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+        ],
       ),
     );
   }

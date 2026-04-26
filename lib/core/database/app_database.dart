@@ -16,6 +16,7 @@ class Courses extends Table {
   TextColumn get room => text().nullable()();
   TextColumn get lecturer => text().nullable()();
   IntColumn get colorValue => integer().withDefault(const Constant(0xFF2196F3))();
+  
 }
 
 // 2. Tabel Tugas
@@ -49,10 +50,17 @@ class Preferences extends Table {
 @DriftDatabase(tables: [Courses, Tasks, Attachments, Preferences])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
+  Future<int> deleteTask(Task task) => delete(tasks).delete(task);
+  Future<int> deleteCourse(Course course) => delete(courses).delete(course);
+  Future updateTaskStatus(Task task, bool completed) {
+    return (update(tasks)..where((t) => t.id.equals(task.id)))
+        .write(TasksCompanion(isCompleted: Value(completed)));
+  }
 
   @override
   int get schemaVersion => 1;
 }
+
 
 LazyDatabase _openConnection() {
 return LazyDatabase(() async {
