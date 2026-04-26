@@ -39,18 +39,20 @@ dependencies:
   # Database & Penyimpanan
   drift: ^2.16.0
   drift_flutter: ^0.3.0
-  sqlite3_flutter_libs: ^0.5.0
+  sqlite3_flutter_libs: ^0.6.0+eol
   path_provider: ^2.1.2
   path: ^1.9.0
 
   # State Management & Logic
-  flutter_bloc: ^8.1.5
+  flutter_bloc: ^9.1.1
   equatable: ^2.0.5
 
   # Notifikasi & File (Poco X3 Pro Friendly)
-  awesome_notifications: ^0.9.3+1
+  awesome_notifications: 0.11.0
   url_launcher: ^6.2.5
-  file_picker: ^8.0.0+1
+  file_picker: ^11.0.2
+  font_awesome_flutter: ^11.0.0
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

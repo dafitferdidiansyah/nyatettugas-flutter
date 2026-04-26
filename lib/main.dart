@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/database/app_database.dart'; // Import database kita
 import 'features/courses/add_course_sheet.dart';
 import 'features/tasks/add_task_sheet.dart';
+import 'features/tasks/focus_screen.dart';
+import 'features/courses/course_archive_screen.dart';
+import 'features/stats/dashboard_screen.dart';
 
 void main() {
   // 1. Inisialisasi Database saat aplikasi pertama kali jalan
@@ -68,6 +71,9 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
+    const FocusScreen(),
+    const CourseArchiveScreen(),   // Tab 1 (Matkul)
+    const DashboardScreen(),       // Tab 2 (Stats)
     const Center(child: Text('Today\'s Focus', style: TextStyle(fontSize: 20, color: Colors.grey))),
     const Center(child: Text('Course Archive', style: TextStyle(fontSize: 20, color: Colors.grey))),
     const Center(child: Text('Stats & Progress', style: TextStyle(fontSize: 20, color: Colors.grey))),

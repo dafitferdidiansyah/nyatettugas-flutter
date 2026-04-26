@@ -497,6 +497,15 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _deadlineMeta = const VerificationMeta(
     'deadline',
   );
@@ -529,6 +538,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     courseId,
     title,
     description,
+    notes,
     deadline,
     isCompleted,
   ];
@@ -570,6 +580,12 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
           data['description']!,
           _descriptionMeta,
         ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
     if (data.containsKey('deadline')) {
@@ -614,6 +630,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         DriftSqlType.string,
         data['${effectivePrefix}description'],
       ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
       deadline: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}deadline'],
@@ -636,6 +656,7 @@ class Task extends DataClass implements Insertable<Task> {
   final int courseId;
   final String title;
   final String? description;
+  final String? notes;
   final DateTime deadline;
   final bool isCompleted;
   const Task({
@@ -643,6 +664,7 @@ class Task extends DataClass implements Insertable<Task> {
     required this.courseId,
     required this.title,
     this.description,
+    this.notes,
     required this.deadline,
     required this.isCompleted,
   });
@@ -654,6 +676,9 @@ class Task extends DataClass implements Insertable<Task> {
     map['title'] = Variable<String>(title);
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
     }
     map['deadline'] = Variable<DateTime>(deadline);
     map['is_completed'] = Variable<bool>(isCompleted);
@@ -668,6 +693,9 @@ class Task extends DataClass implements Insertable<Task> {
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
       deadline: Value(deadline),
       isCompleted: Value(isCompleted),
     );
@@ -683,6 +711,7 @@ class Task extends DataClass implements Insertable<Task> {
       courseId: serializer.fromJson<int>(json['courseId']),
       title: serializer.fromJson<String>(json['title']),
       description: serializer.fromJson<String?>(json['description']),
+      notes: serializer.fromJson<String?>(json['notes']),
       deadline: serializer.fromJson<DateTime>(json['deadline']),
       isCompleted: serializer.fromJson<bool>(json['isCompleted']),
     );
@@ -695,6 +724,7 @@ class Task extends DataClass implements Insertable<Task> {
       'courseId': serializer.toJson<int>(courseId),
       'title': serializer.toJson<String>(title),
       'description': serializer.toJson<String?>(description),
+      'notes': serializer.toJson<String?>(notes),
       'deadline': serializer.toJson<DateTime>(deadline),
       'isCompleted': serializer.toJson<bool>(isCompleted),
     };
@@ -705,6 +735,7 @@ class Task extends DataClass implements Insertable<Task> {
     int? courseId,
     String? title,
     Value<String?> description = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
     DateTime? deadline,
     bool? isCompleted,
   }) => Task(
@@ -712,6 +743,7 @@ class Task extends DataClass implements Insertable<Task> {
     courseId: courseId ?? this.courseId,
     title: title ?? this.title,
     description: description.present ? description.value : this.description,
+    notes: notes.present ? notes.value : this.notes,
     deadline: deadline ?? this.deadline,
     isCompleted: isCompleted ?? this.isCompleted,
   );
@@ -723,6 +755,7 @@ class Task extends DataClass implements Insertable<Task> {
       description: data.description.present
           ? data.description.value
           : this.description,
+      notes: data.notes.present ? data.notes.value : this.notes,
       deadline: data.deadline.present ? data.deadline.value : this.deadline,
       isCompleted: data.isCompleted.present
           ? data.isCompleted.value
@@ -737,6 +770,7 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('courseId: $courseId, ')
           ..write('title: $title, ')
           ..write('description: $description, ')
+          ..write('notes: $notes, ')
           ..write('deadline: $deadline, ')
           ..write('isCompleted: $isCompleted')
           ..write(')'))
@@ -744,8 +778,15 @@ class Task extends DataClass implements Insertable<Task> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, courseId, title, description, deadline, isCompleted);
+  int get hashCode => Object.hash(
+    id,
+    courseId,
+    title,
+    description,
+    notes,
+    deadline,
+    isCompleted,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -754,6 +795,7 @@ class Task extends DataClass implements Insertable<Task> {
           other.courseId == this.courseId &&
           other.title == this.title &&
           other.description == this.description &&
+          other.notes == this.notes &&
           other.deadline == this.deadline &&
           other.isCompleted == this.isCompleted);
 }
@@ -763,6 +805,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<int> courseId;
   final Value<String> title;
   final Value<String?> description;
+  final Value<String?> notes;
   final Value<DateTime> deadline;
   final Value<bool> isCompleted;
   const TasksCompanion({
@@ -770,6 +813,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.courseId = const Value.absent(),
     this.title = const Value.absent(),
     this.description = const Value.absent(),
+    this.notes = const Value.absent(),
     this.deadline = const Value.absent(),
     this.isCompleted = const Value.absent(),
   });
@@ -778,6 +822,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     required int courseId,
     required String title,
     this.description = const Value.absent(),
+    this.notes = const Value.absent(),
     required DateTime deadline,
     this.isCompleted = const Value.absent(),
   }) : courseId = Value(courseId),
@@ -788,6 +833,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<int>? courseId,
     Expression<String>? title,
     Expression<String>? description,
+    Expression<String>? notes,
     Expression<DateTime>? deadline,
     Expression<bool>? isCompleted,
   }) {
@@ -796,6 +842,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (courseId != null) 'course_id': courseId,
       if (title != null) 'title': title,
       if (description != null) 'description': description,
+      if (notes != null) 'notes': notes,
       if (deadline != null) 'deadline': deadline,
       if (isCompleted != null) 'is_completed': isCompleted,
     });
@@ -806,6 +853,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<int>? courseId,
     Value<String>? title,
     Value<String?>? description,
+    Value<String?>? notes,
     Value<DateTime>? deadline,
     Value<bool>? isCompleted,
   }) {
@@ -814,6 +862,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       courseId: courseId ?? this.courseId,
       title: title ?? this.title,
       description: description ?? this.description,
+      notes: notes ?? this.notes,
       deadline: deadline ?? this.deadline,
       isCompleted: isCompleted ?? this.isCompleted,
     );
@@ -834,6 +883,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (description.present) {
       map['description'] = Variable<String>(description.value);
     }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
     if (deadline.present) {
       map['deadline'] = Variable<DateTime>(deadline.value);
     }
@@ -850,6 +902,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('courseId: $courseId, ')
           ..write('title: $title, ')
           ..write('description: $description, ')
+          ..write('notes: $notes, ')
           ..write('deadline: $deadline, ')
           ..write('isCompleted: $isCompleted')
           ..write(')'))
@@ -1720,6 +1773,7 @@ typedef $$TasksTableCreateCompanionBuilder =
       required int courseId,
       required String title,
       Value<String?> description,
+      Value<String?> notes,
       required DateTime deadline,
       Value<bool> isCompleted,
     });
@@ -1729,6 +1783,7 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<int> courseId,
       Value<String> title,
       Value<String?> description,
+      Value<String?> notes,
       Value<DateTime> deadline,
       Value<bool> isCompleted,
     });
@@ -1793,6 +1848,11 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<String> get description => $composableBuilder(
     column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1879,6 +1939,11 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get deadline => $composableBuilder(
     column: $table.deadline,
     builder: (column) => ColumnOrderings(column),
@@ -1932,6 +1997,9 @@ class $$TasksTableAnnotationComposer
     column: $table.description,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
 
   GeneratedColumn<DateTime> get deadline =>
       $composableBuilder(column: $table.deadline, builder: (column) => column);
@@ -2022,6 +2090,7 @@ class $$TasksTableTableManager
                 Value<int> courseId = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<String?> description = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
                 Value<DateTime> deadline = const Value.absent(),
                 Value<bool> isCompleted = const Value.absent(),
               }) => TasksCompanion(
@@ -2029,6 +2098,7 @@ class $$TasksTableTableManager
                 courseId: courseId,
                 title: title,
                 description: description,
+                notes: notes,
                 deadline: deadline,
                 isCompleted: isCompleted,
               ),
@@ -2038,6 +2108,7 @@ class $$TasksTableTableManager
                 required int courseId,
                 required String title,
                 Value<String?> description = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
                 required DateTime deadline,
                 Value<bool> isCompleted = const Value.absent(),
               }) => TasksCompanion.insert(
@@ -2045,6 +2116,7 @@ class $$TasksTableTableManager
                 courseId: courseId,
                 title: title,
                 description: description,
+                notes: notes,
                 deadline: deadline,
                 isCompleted: isCompleted,
               ),

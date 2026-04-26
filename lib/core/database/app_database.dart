@@ -24,6 +24,7 @@ class Tasks extends Table {
   IntColumn get courseId => integer().references(Courses, #id)();
   TextColumn get title => text()();
   TextColumn get description => text().nullable()();
+  TextColumn get notes => text().nullable()();
   DateTimeColumn get deadline => dateTime()();
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
 }
@@ -54,11 +55,14 @@ class AppDatabase extends _$AppDatabase {
 }
 
 LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    // drift_flutter akan otomatis membuat database Web (pakai IndexedDB) jika di Chrome, 
-    // atau database Native (SQLite) jika di Android!
+return LazyDatabase(() async {
     return driftDatabase(
-      name: 'coursetrak_db',
+      name: 'nyatettugas_db',
+      web: DriftWebOptions(
+        // Ini adalah 'parameter' yang diminta oleh error tersebut
+        sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+        driftWorker: Uri.parse('drift_worker.js'),
+      ),
     );
   });
 }
