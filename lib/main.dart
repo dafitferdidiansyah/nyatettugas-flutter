@@ -49,7 +49,7 @@ class _MainScreenState extends State<MainScreen> {
     const DashboardScreen(),       // 2: Analytics
   ];
 
-  final List<String> _titles = ["Focus", "Archive", "Dashboard"];
+  final List<String> _titles = ["Task", "Courses", "Dashboard"];
 
   @override
   Widget build(BuildContext context) {
@@ -94,9 +94,9 @@ class _MainScreenState extends State<MainScreen> {
           elevation: 0,
           type: BottomNavigationBarType.fixed,
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.task_alt), label: 'Focus'),
-            BottomNavigationBarItem(icon: Icon(Icons.folder_open), label: 'Archive'),
-            BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
+            BottomNavigationBarItem(icon: Icon(Icons.task_alt), label: 'Task'),
+            BottomNavigationBarItem(icon: Icon(Icons.folder_open), label: 'Courses'),
+            BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Dashboard'),
           ],
         ),
       ),

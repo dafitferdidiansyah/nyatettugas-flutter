@@ -56,6 +56,7 @@ class AppDatabase extends _$AppDatabase {
     return (update(tasks)..where((t) => t.id.equals(task.id)))
         .write(TasksCompanion(isCompleted: Value(completed)));
   }
+  Future updateCourse(Course course) => update(courses).replace(course);
 
   @override
   int get schemaVersion => 1;

@@ -1,64 +1,83 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart'; // Untuk buka file native
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:drift/drift.dart' hide Column;
 import '../../core/database/app_database.dart';
 
-class TaskDetailScreen extends StatelessWidget {
+class TaskDetailScreen extends StatefulWidget {
   final Task task;
   final Course course;
 
   const TaskDetailScreen({super.key, required this.task, required this.course});
 
-  // Algoritma Buka File Native MIUI
-  void _openFile(String path) async {
-    final Uri uri = Uri.file(path);
-    if (!await launchUrl(uri)) {
-      throw Exception('Could not launch $path');
-    }
+  @override
+  State<TaskDetailScreen> createState() => _TaskDetailScreenState();
+}
+
+class _TaskDetailScreenState extends State<TaskDetailScreen> {
+  late TextEditingController _notesController;
+
+  @override
+  void initState() {
+    super.initState();
+    _notesController = TextEditingController(text: widget.task.notes ?? '');
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleAutoSave() async {
+    final db = context.read<AppDatabase>();
+    await db.update(db.tasks).replace(
+          widget.task.copyWith(notes: Value(_notesController.text)),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Assignment Detail')),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(course.name, style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text(task.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-            const SizedBox(height: 20),
-            const Text('Attachments', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            
-            // Contoh Tampilan Attachment (Nanti kita ambil dari database)
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
-              child: ListTile(
-                leading: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
-                title: const Text('Materi_Kuliah.pdf', style: TextStyle(color: Colors.white)),
-                trailing: const Icon(Icons.open_in_new, color: Colors.grey),
-                onTap: () {
-                  // _openFile('/storage/emulated/0/Download/Materi_Kuliah.pdf');
-                },
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) {
+          await _handleAutoSave(); // Auto-save saat user kembali (back)
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF121212), // Tetap pertahankan dark style
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: Text(widget.course.name, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.task.title,
+                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
               ),
-            ),
-            
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E1E1E), foregroundColor: Colors.white),
-                onPressed: () {
-                  // TODO: Panggil FilePicker
-                },
-                icon: const Icon(Icons.add_link),
-                label: const Text('Add Attachment'),
+              const SizedBox(height: 20),
+              Expanded(
+                child: TextField(
+                  controller: _notesController,
+                  maxLines: null,
+                  expands: true,
+                  autofocus: true, // INI KUNCI PERBAIKANNYA BIAR TIDAK BEKU
+                  style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.6),
+                  decoration: const InputDecoration(
+                    hintText: "Start writing your notes...",
+                    hintStyle: TextStyle(color: Colors.white24),
+                    border: InputBorder.none,
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

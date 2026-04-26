@@ -1,4 +1,3 @@
-// Lokasi: lib/features/settings/settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,8 +10,6 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _nameController = TextEditingController();
-  bool _taskNotifEnabled = true;
-  bool _courseNotifEnabled = true;
 
   @override
   void initState() {
@@ -20,23 +17,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadSettings();
   }
 
-  _loadSettings() async {
+  Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _nameController.text = prefs.getString('user_name') ?? '';
-      _taskNotifEnabled = prefs.getBool('task_notif') ?? true;
-      _courseNotifEnabled = prefs.getBool('course_notif') ?? true;
     });
   }
 
-  _saveName(String value) async {
+  Future<void> _saveName(String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_name', value);
-  }
-
-  _toggleSetting(String key, bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(key, value);
   }
 
   @override
@@ -68,30 +58,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           
           const SizedBox(height: 30),
-          _buildSectionHeader("Reminders & Alerts"),
+          _buildSectionHeader("Global Reminder Settings"),
           Container(
             decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
             child: Column(
               children: [
-                SwitchListTile(
+                ListTile(
                   title: const Text("Task Deadlines", style: TextStyle(color: Colors.white)),
-                  subtitle: const Text("Alerts before tasks are due", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                  activeColor: const Color(0xFF00E676),
-                  value: _taskNotifEnabled,
-                  onChanged: (val) {
-                    setState(() => _taskNotifEnabled = val);
-                    _toggleSetting('task_notif', val);
+                  subtitle: const Text("Notify 1 hour before due date", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white24),
+                  onTap: () {
+                    _showSnackbar("Task reminder settings coming soon!");
                   },
                 ),
                 Divider(color: Colors.grey.shade800, height: 1),
-                SwitchListTile(
-                  title: const Text("Course Schedules", style: TextStyle(color: Colors.white)),
-                  subtitle: const Text("Alerts before classes start", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                  activeColor: const Color(0xFF00E676),
-                  value: _courseNotifEnabled,
-                  onChanged: (val) {
-                    setState(() => _courseNotifEnabled = val);
-                    _toggleSetting('course_notif', val);
+                ListTile(
+                  title: const Text("Course Schedule", style: TextStyle(color: Colors.white)),
+                  subtitle: const Text("Notify 15 minutes before class", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white24),
+                  onTap: () {
+                    _showSnackbar("Course reminder settings coming soon!");
                   },
                 ),
               ],
